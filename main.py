@@ -12,6 +12,11 @@ cout_list = pickle.load(open("data/statistics", "rb"))
 count = collections.Counter(dict(cout_list))
 N = sum(count.values())
 
+# load error freq
+error_count_list = pickle.load(open("data/error_freq", "rb"))
+error_freq = collections.Counter(dict(error_count_list))
+E = sum(error_freq.values())
+
 # prepare forms
 with open("data/formy_utf.txt") as file:
     forms = file.read().split()
@@ -63,11 +68,7 @@ def candidates(word):
 def P_w_c(args):
     (correct, word) = args
     (distance,) = lev.lev(correct, word),
-    if distance == 0:
-        return (1.0 + count[word]) / (sum(map(lambda x: count[x], [word])) + M) * 4
-    if distance <= 1:
-        return (1.0 + count[word]) / (sum(map(lambda x: count[x], [word] + list(known_edits1(correct)))) + M) * 1.0 / distance
-    return (1.0 + count[word]) / (sum(map(lambda x: count[x], [word] + list(known_edits1(correct)) + list(known_edits2(correct)))) + M) * 1.0 / distance
+    return (1.0 * error_freq[distance] if error_freq[distance] != 0 else 1.0) / E
 
 
 def P_c(args):
@@ -95,7 +96,7 @@ guesses = zip(probabilities, cand)
 guesses.sort(key=lambda tup: tup[0])
 
 # Print results
-for (val, word) in reversed(guesses[-10:]):
+for (val, word) in reversed(guesses[-20:]):
     print(val)
     print(word)
     print('\n')
